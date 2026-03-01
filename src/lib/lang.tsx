@@ -51,6 +51,22 @@ interface Translations {
   loginSuccess: string;
   invalidLogin: string;
   attendanceSuccess: string;
+  // Tabs & New Member
+  mukyashikshakTab: string;
+  newTab: string;
+  nameLabel: string;
+  namePlaceholder: string;
+  ageLabel: string;
+  agePlaceholder: string;
+  numberLabel: string;
+  numberPlaceholder: string;
+  addressLabel: string;
+  addressPlaceholder: string;
+  roleLabel: string;
+  rolePlaceholder: string;
+  shikshanaLabel: string;
+  shikshanaSelect: string;
+  newMemberSuccess: string;
 }
 
 const en: Translations = {
@@ -98,6 +114,21 @@ const en: Translations = {
   loginSuccess: "Login successful!",
   invalidLogin: "Invalid username or password",
   attendanceSuccess: "Attendance submitted successfully!",
+  mukyashikshakTab: "Mukyashikshak",
+  newTab: "New",
+  nameLabel: "Name",
+  namePlaceholder: "Enter full name",
+  ageLabel: "Age",
+  agePlaceholder: "Age",
+  numberLabel: "Phone Number",
+  numberPlaceholder: "Phone number",
+  addressLabel: "Address",
+  addressPlaceholder: "Enter address",
+  roleLabel: "Role",
+  rolePlaceholder: "Enter role",
+  shikshanaLabel: "Shikshana (ಶಿಕ್ಷಣ)",
+  shikshanaSelect: "-- Select Shikshana --",
+  newMemberSuccess: "New member registered successfully!",
 };
 
 const kn: Translations = {
@@ -145,6 +176,21 @@ const kn: Translations = {
   loginSuccess: "ಲಾಗಿನ್ ಯಶಸ್ವಿ!",
   invalidLogin: "ಅಮಾನ್ಯ ಬಳಕೆದಾರ ಹೆಸರು ಅಥವಾ ಗುಪ್ತಪದ",
   attendanceSuccess: "ಹಾಜರಾತಿ ಯಶಸ್ವಿಯಾಗಿ ಸಲ್ಲಿಸಲಾಗಿದೆ!",
+  mukyashikshakTab: "ಮುಖ್ಯಶಿಕ್ಷಕ",
+  newTab: "ಹೊಸ",
+  nameLabel: "ಹೆಸರು",
+  namePlaceholder: "ಪೂರ್ಣ ಹೆಸರನ್ನು ನಮೂದಿಸಿ",
+  ageLabel: "ವಯಸ್ಸು",
+  agePlaceholder: "ವಯಸ್ಸು",
+  numberLabel: "ಫೋನ್ ಸಂಖ್ಯೆ",
+  numberPlaceholder: "ಫೋನ್ ಸಂಖ್ಯೆ",
+  addressLabel: "ವಿಳಾಸ",
+  addressPlaceholder: "ವಿಳಾಸ ನಮೂದಿಸಿ",
+  roleLabel: "ಪಾತ್ರ",
+  rolePlaceholder: "ಪಾತ್ರ ನಮೂದಿಸಿ",
+  shikshanaLabel: "ಶಿಕ್ಷಣ",
+  shikshanaSelect: "-- ಶಿಕ್ಷಣ ಆಯ್ಕೆಮಾಡಿ --",
+  newMemberSuccess: "ಹೊಸ ಸದಸ್ಯ ಯಶಸ್ವಿಯಾಗಿ ನೋಂದಣಿಯಾಗಿದೆ!",
 };
 
 const translations = { en, kn };
