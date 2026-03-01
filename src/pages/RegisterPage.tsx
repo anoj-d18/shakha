@@ -1,46 +1,48 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { loginUser } from "@/lib/auth";
+import { registerUser } from "@/lib/auth";
 import PageLayout from "@/components/PageLayout";
 import { toast } from "sonner";
 
-const LoginPage = () => {
+const RegisterPage = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !password) {
       toast.error("Please fill in all fields");
       return;
     }
-    if (loginUser(username, password)) {
-      toast.success("Login successful!");
-      navigate("/attendance");
+    if (password.length < 4) {
+      toast.error("Password must be at least 4 characters");
+      return;
+    }
+    if (registerUser(username, password)) {
+      toast.success("Registration successful! Please login.");
+      navigate("/");
     } else {
-      toast.error("Invalid username or password");
+      toast.error("Username already exists");
     }
   };
 
   return (
     <PageLayout>
       <div className="glass-card p-8 md:p-10">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 saffron-gradient rounded-full mx-auto mb-4 flex items-center justify-center">
             <span className="text-primary-foreground text-2xl font-bold font-display">ॐ</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold font-display text-foreground">
-            शाखा उपस्थिति प्रणाली
+            नया पंजीकरण
           </h1>
           <p className="text-muted-foreground mt-2 text-sm">
-            Shakha Attendance Management System
+            Create a new account
           </p>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleLogin} className="space-y-5">
+        <form onSubmit={handleRegister} className="space-y-5">
           <div>
             <label className="block text-sm font-semibold text-foreground mb-1.5">
               Username
@@ -50,7 +52,7 @@ const LoginPage = () => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-input bg-warm-white text-foreground placeholder:text-muted-foreground input-focus-ring outline-none"
-              placeholder="Enter your username"
+              placeholder="Choose a username"
             />
           </div>
 
@@ -63,7 +65,7 @@ const LoginPage = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-input bg-warm-white text-foreground placeholder:text-muted-foreground input-focus-ring outline-none"
-              placeholder="Enter your password"
+              placeholder="Choose a password"
             />
           </div>
 
@@ -71,14 +73,14 @@ const LoginPage = () => {
             type="submit"
             className="w-full py-3 rounded-lg saffron-gradient text-primary-foreground font-semibold text-base btn-elevation"
           >
-            Login
+            Register
           </button>
         </form>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
-          Don't have an account?{" "}
-          <Link to="/register" className="text-primary font-semibold hover:underline">
-            Register here
+          Already have an account?{" "}
+          <Link to="/" className="text-primary font-semibold hover:underline">
+            Login here
           </Link>
         </p>
       </div>
@@ -86,4 +88,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default RegisterPage;
