@@ -1,0 +1,182 @@
+import { createContext, useContext, useState, ReactNode } from "react";
+
+type Lang = "en" | "kn";
+
+interface Translations {
+  // Login
+  loginTitle: string;
+  loginSubtitle: string;
+  username: string;
+  password: string;
+  loginBtn: string;
+  noAccount: string;
+  registerLink: string;
+  enterUsername: string;
+  enterPassword: string;
+  // Register
+  registerTitle: string;
+  registerSubtitle: string;
+  registerBtn: string;
+  hasAccount: string;
+  loginLink: string;
+  chooseUsername: string;
+  choosePassword: string;
+  // Attendance
+  rssTitle: string;
+  rssSubtitle: string;
+  attendanceFormTitle: string;
+  shakha: string;
+  date: string;
+  place: string;
+  attendanceDetails: string;
+  taruna: string;
+  balaka: string;
+  total: string;
+  shishu: string;
+  abhyagata: string;
+  anya: string;
+  pravasa: string;
+  vishesha: string;
+  submitBtn: string;
+  logout: string;
+  shakhaPlaceholder: string;
+  locationPlaceholder: string;
+  specialNotes: string;
+  // Validation
+  fillAll: string;
+  fillRequired: string;
+  passwordMin: string;
+  usernameExists: string;
+  regSuccess: string;
+  loginSuccess: string;
+  invalidLogin: string;
+  attendanceSuccess: string;
+}
+
+const en: Translations = {
+  loginTitle: "शाखा उपस्थिति प्रणाली",
+  loginSubtitle: "Shakha Attendance Management System",
+  username: "Username",
+  password: "Password",
+  loginBtn: "Login",
+  noAccount: "Don't have an account?",
+  registerLink: "Register here",
+  enterUsername: "Enter your username",
+  enterPassword: "Enter your password",
+  registerTitle: "New Registration",
+  registerSubtitle: "Create a new account",
+  registerBtn: "Register",
+  hasAccount: "Already have an account?",
+  loginLink: "Login here",
+  chooseUsername: "Choose a username",
+  choosePassword: "Choose a password",
+  rssTitle: "राष्ट्रीय स्वयंसेवक संघ",
+  rssSubtitle: "Rashtriya Swayamsevak Sangh",
+  attendanceFormTitle: "Shakha Attendance Form",
+  shakha: "Shakha (शाखा)",
+  date: "Date (दिनांक)",
+  place: "Place (स्थान)",
+  attendanceDetails: "Attendance Details",
+  taruna: "Taruna (तरुण)",
+  balaka: "Balaka (बालक)",
+  total: "Total (कुल)",
+  shishu: "Shishu (शिशु)",
+  abhyagata: "Abhyagata (अभ्यागत)",
+  anya: "Anya (अन्य)",
+  pravasa: "Pravasa (प्रवास)",
+  vishesha: "Vishesha (विशेष)",
+  submitBtn: "Submit Attendance",
+  logout: "Logout",
+  shakhaPlaceholder: "Shakha name",
+  locationPlaceholder: "Location",
+  specialNotes: "Special notes",
+  fillAll: "Please fill in all fields",
+  fillRequired: "Please fill Shakha, Date, and Place",
+  passwordMin: "Password must be at least 4 characters",
+  usernameExists: "Username already exists",
+  regSuccess: "Registration successful! Please login.",
+  loginSuccess: "Login successful!",
+  invalidLogin: "Invalid username or password",
+  attendanceSuccess: "Attendance submitted successfully!",
+};
+
+const kn: Translations = {
+  loginTitle: "ಶಾಖಾ ಹಾಜರಾತಿ ವ್ಯವಸ್ಥೆ",
+  loginSubtitle: "ಶಾಖಾ ಹಾಜರಾತಿ ನಿರ್ವಹಣಾ ವ್ಯವಸ್ಥೆ",
+  username: "ಬಳಕೆದಾರ ಹೆಸರು",
+  password: "ಗುಪ್ತಪದ",
+  loginBtn: "ಲಾಗಿನ್",
+  noAccount: "ಖಾತೆ ಇಲ್ಲವೇ?",
+  registerLink: "ಇಲ್ಲಿ ನೋಂದಣಿ ಮಾಡಿ",
+  enterUsername: "ನಿಮ್ಮ ಬಳಕೆದಾರ ಹೆಸರನ್ನು ನಮೂದಿಸಿ",
+  enterPassword: "ನಿಮ್ಮ ಗುಪ್ತಪದವನ್ನು ನಮೂದಿಸಿ",
+  registerTitle: "ಹೊಸ ನೋಂದಣಿ",
+  registerSubtitle: "ಹೊಸ ಖಾತೆ ರಚಿಸಿ",
+  registerBtn: "ನೋಂದಣಿ",
+  hasAccount: "ಈಗಾಗಲೇ ಖಾತೆ ಇದೆಯೇ?",
+  loginLink: "ಇಲ್ಲಿ ಲಾಗಿನ್ ಮಾಡಿ",
+  chooseUsername: "ಬಳಕೆದಾರ ಹೆಸರನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+  choosePassword: "ಗುಪ್ತಪದವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+  rssTitle: "ರಾಷ್ಟ್ರೀಯ ಸ್ವಯಂಸೇವಕ ಸಂಘ",
+  rssSubtitle: "Rashtriya Swayamsevak Sangh",
+  attendanceFormTitle: "ಶಾಖಾ ಹಾಜರಾತಿ ನಮೂನೆ",
+  shakha: "ಶಾಖಾ",
+  date: "ದಿನಾಂಕ",
+  place: "ಸ್ಥಳ",
+  attendanceDetails: "ಹಾಜರಾತಿ ವಿವರಗಳು",
+  taruna: "ತರುಣ",
+  balaka: "ಬಾಲಕ",
+  total: "ಒಟ್ಟು",
+  shishu: "ಶಿಶು",
+  abhyagata: "ಅಭ್ಯಾಗತ",
+  anya: "ಅನ್ಯ",
+  pravasa: "ಪ್ರವಾಸ",
+  vishesha: "ವಿಶೇಷ",
+  submitBtn: "ಹಾಜರಾತಿ ಸಲ್ಲಿಸಿ",
+  logout: "ಲಾಗ್ ಔಟ್",
+  shakhaPlaceholder: "ಶಾಖಾ ಹೆಸರು",
+  locationPlaceholder: "ಸ್ಥಳ",
+  specialNotes: "ವಿಶೇಷ ಟಿಪ್ಪಣಿಗಳು",
+  fillAll: "ದಯವಿಟ್ಟು ಎಲ್ಲಾ ಕ್ಷೇತ್ರಗಳನ್ನು ಭರ್ತಿ ಮಾಡಿ",
+  fillRequired: "ದಯವಿಟ್ಟು ಶಾಖಾ, ದಿನಾಂಕ ಮತ್ತು ಸ್ಥಳವನ್ನು ಭರ್ತಿ ಮಾಡಿ",
+  passwordMin: "ಗುಪ್ತಪದ ಕನಿಷ್ಠ 4 ಅಕ್ಷರಗಳಿರಬೇಕು",
+  usernameExists: "ಬಳಕೆದಾರ ಹೆಸರು ಈಗಾಗಲೇ ಅಸ್ತಿತ್ವದಲ್ಲಿದೆ",
+  regSuccess: "ನೋಂದಣಿ ಯಶಸ್ವಿ! ದಯವಿಟ್ಟು ಲಾಗಿನ್ ಮಾಡಿ.",
+  loginSuccess: "ಲಾಗಿನ್ ಯಶಸ್ವಿ!",
+  invalidLogin: "ಅಮಾನ್ಯ ಬಳಕೆದಾರ ಹೆಸರು ಅಥವಾ ಗುಪ್ತಪದ",
+  attendanceSuccess: "ಹಾಜರಾತಿ ಯಶಸ್ವಿಯಾಗಿ ಸಲ್ಲಿಸಲಾಗಿದೆ!",
+};
+
+const translations = { en, kn };
+
+interface LangContextType {
+  lang: Lang;
+  t: Translations;
+  toggleLang: () => void;
+}
+
+const LangContext = createContext<LangContextType>({
+  lang: "en",
+  t: en,
+  toggleLang: () => {},
+});
+
+export const useLang = () => useContext(LangContext);
+
+export const LangProvider = ({ children }: { children: ReactNode }) => {
+  const [lang, setLang] = useState<Lang>(() => {
+    return (localStorage.getItem("shakha_lang") as Lang) || "en";
+  });
+
+  const toggleLang = () => {
+    const next = lang === "en" ? "kn" : "en";
+    setLang(next);
+    localStorage.setItem("shakha_lang", next);
+  };
+
+  return (
+    <LangContext.Provider value={{ lang, t: translations[lang], toggleLang }}>
+      {children}
+    </LangContext.Provider>
+  );
+};
