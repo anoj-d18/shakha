@@ -132,7 +132,7 @@ const en: Translations = {
 };
 
 const kn: Translations = {
-  loginTitle: "ಶಾಖಾ ಹಾಜರಾತಿ ವ್ಯವಸ್ಥೆ",
+  loginTitle: "ರಾಷ್ಟ್ರೀಯ ಸ್ವಯಂಸೇವಕ ಸಂಘ",
   loginSubtitle: "ಶಾಖಾ ಹಾಜರಾತಿ ನಿರ್ವಹಣಾ ವ್ಯವಸ್ಥೆ",
   username: "ಬಳಕೆದಾರ ಹೆಸರು",
   password: "ಗುಪ್ತಪದ",
