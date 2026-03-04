@@ -70,7 +70,7 @@ interface Translations {
 }
 
 const en: Translations = {
-  loginTitle: "Shakha Attendance System",
+  loginTitle: "Rashtriya Swayamsevak Sangh",
   loginSubtitle: "Shakha Attendance Management System",
   username: "Username",
   password: "Password",
