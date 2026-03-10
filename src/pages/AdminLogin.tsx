@@ -21,6 +21,10 @@ const AdminLogin = () => {
       toast.error("Please fill in all fields");
       return;
     }
+    if (!email.includes("@")) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
     if (password.length < 6) {
       toast.error("Password must be at least 6 characters");
       return;
