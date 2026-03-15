@@ -1,19 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { registerUser } from "@/lib/auth";
+import { registerUser, isLoggedIn } from "@/lib/auth";
 import { useLang } from "@/lib/lang";
 import PageLayout from "@/components/PageLayout";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const RegisterPage = () => {
+  const [name, setName] = useState("");
+  const [age, setAge] = useState<number | "">("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [role, setRole] = useState("");
+  const [shikshana, setShikshana] = useState("");
+  const [shakhaId, setShakhaId] = useState("");
+  const [shakhas, setShakhas] = useState<{ id: string; name: string }[]>([]);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { t } = useLang();
 
-  const handleRegister = (e: React.FormEvent) => {
+  useEffect(() => {
+    supabase.from("shakhas").select("id, name").order("name").then(({ data }) => {
+      if (data) setShakhas(data);
+    });
+  }, []);
+
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username || !password) {
+    if (!name || !username || !password) {
       toast.error(t.fillAll);
       return;
     }
@@ -21,17 +37,42 @@ const RegisterPage = () => {
       toast.error(t.passwordMin);
       return;
     }
-    if (registerUser(username, password)) {
-      toast.success(t.regSuccess);
-      navigate("/");
-    } else {
+
+    setLoading(true);
+
+    // Save local auth
+    if (!registerUser(username, password)) {
       toast.error(t.usernameExists);
+      setLoading(false);
+      return;
     }
+
+    // Save member to database
+    const { error } = await supabase.from("members").insert({
+      name,
+      age: age === "" ? null : Number(age),
+      phone: phone || null,
+      address: address || null,
+      role: role || null,
+      shikshana: shikshana || null,
+      shakha_id: shakhaId || null,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      console.error("Member insert error:", error);
+      toast.error("Registration failed: " + error.message);
+      return;
+    }
+
+    toast.success(t.regSuccess);
+    navigate("/");
   };
 
   return (
     <PageLayout>
-      <div className="glass-card p-8 md:p-10">
+      <div className="glass-card p-8 md:p-10 max-w-2xl mx-auto">
         <div className="text-center mb-8">
           <div className="w-16 h-16 saffron-gradient rounded-full mx-auto mb-4 flex items-center justify-center">
             <span className="text-primary-foreground text-2xl font-bold font-display">ॐ</span>
@@ -41,28 +82,86 @@ const RegisterPage = () => {
         </div>
 
         <form onSubmit={handleRegister} className="space-y-5">
-          <div>
-            <label className="block text-sm font-semibold text-foreground mb-1.5">{t.username}</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-input bg-warm-white text-foreground placeholder:text-muted-foreground input-focus-ring outline-none"
-              placeholder={t.chooseUsername}
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-foreground mb-1.5">{t.username}</label>
+              <input type="text" value={username} onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg border border-input bg-warm-white text-foreground placeholder:text-muted-foreground input-focus-ring outline-none"
+                placeholder={t.chooseUsername} />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-foreground mb-1.5">{t.password}</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg border border-input bg-warm-white text-foreground placeholder:text-muted-foreground input-focus-ring outline-none"
+                placeholder={t.choosePassword} />
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-semibold text-foreground mb-1.5">{t.password}</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-input bg-warm-white text-foreground placeholder:text-muted-foreground input-focus-ring outline-none"
-              placeholder={t.choosePassword}
-            />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-foreground mb-1.5">Name / नाम *</label>
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg border border-input bg-warm-white text-foreground placeholder:text-muted-foreground input-focus-ring outline-none"
+                placeholder="Enter full name" />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-foreground mb-1.5">Age / आयु</label>
+              <input type="number" min={1} value={age} onChange={(e) => setAge(e.target.value === "" ? "" : Number(e.target.value))}
+                className="w-full px-4 py-3 rounded-lg border border-input bg-warm-white text-foreground placeholder:text-muted-foreground input-focus-ring outline-none"
+                placeholder="Age" />
+            </div>
           </div>
-          <button type="submit" className="w-full py-3 rounded-lg saffron-gradient text-primary-foreground font-semibold text-base btn-elevation">
-            {t.registerBtn}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-foreground mb-1.5">Phone / दूरभाष</label>
+              <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg border border-input bg-warm-white text-foreground placeholder:text-muted-foreground input-focus-ring outline-none"
+                placeholder="Phone number" />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-foreground mb-1.5">Role / भूमिका</label>
+              <input type="text" value={role} onChange={(e) => setRole(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg border border-input bg-warm-white text-foreground placeholder:text-muted-foreground input-focus-ring outline-none"
+                placeholder="e.g. Swayamsevak" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-foreground mb-1.5">Address / पता</label>
+            <input type="text" value={address} onChange={(e) => setAddress(e.target.value)}
+              className="w-full px-4 py-3 rounded-lg border border-input bg-warm-white text-foreground placeholder:text-muted-foreground input-focus-ring outline-none"
+              placeholder="Full address" />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-foreground mb-1.5">Shikshana / शिक्षण</label>
+              <select value={shikshana} onChange={(e) => setShikshana(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg border border-input bg-warm-white text-foreground input-focus-ring outline-none">
+                <option value="">Select</option>
+                <option value="None">None</option>
+                <option value="OTC">OTC</option>
+                <option value="ITC1">ITC1</option>
+                <option value="ITC2">ITC2</option>
+                <option value="ITC3">ITC3</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-foreground mb-1.5">Shakha / शाखा</label>
+              <select value={shakhaId} onChange={(e) => setShakhaId(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg border border-input bg-warm-white text-foreground input-focus-ring outline-none">
+                <option value="">Select Shakha</option>
+                {shakhas.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" disabled={loading}
+            className="w-full py-3 rounded-lg saffron-gradient text-primary-foreground font-semibold text-base btn-elevation disabled:opacity-50">
+            {loading ? "Registering..." : t.registerBtn}
           </button>
         </form>
 

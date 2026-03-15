@@ -4,6 +4,7 @@ import { isLoggedIn, logout, getSession } from "@/lib/auth";
 import { useLang } from "@/lib/lang";
 import PageLayout from "@/components/PageLayout";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const AttendancePage = () => {
   const navigate = useNavigate();
@@ -23,23 +24,42 @@ const AttendancePage = () => {
   const [anya, setAnya] = useState<number | "">("");
   const [pravasa, setPravasa] = useState<number | "">("");
   const [vishesha, setVishesha] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const total = (Number(taruna) || 0) + (Number(balaka) || 0);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!shakha || !date || !place) {
       toast.error(t.fillRequired);
       return;
     }
-    const record = {
-      shakha, date, place, taruna, balaka, total, shishu, abhyagata, anya, pravasa, vishesha,
-      submittedBy: getSession(),
-      submittedAt: new Date().toISOString(),
-    };
-    const existing = JSON.parse(localStorage.getItem("shakha_attendance") || "[]");
-    existing.push(record);
-    localStorage.setItem("shakha_attendance", JSON.stringify(existing));
+
+    setLoading(true);
+
+    const { error } = await supabase.from("attendance").insert({
+      shakha_name: shakha,
+      date,
+      place,
+      taruna: Number(taruna) || 0,
+      balaka: Number(balaka) || 0,
+      total,
+      shishu: Number(shishu) || 0,
+      abhyagata: Number(abhyagata) || 0,
+      anya: Number(anya) || 0,
+      pravasa: Number(pravasa) || 0,
+      vishesha: vishesha || null,
+      submitted_by: getSession(),
+    });
+
+    setLoading(false);
+
+    if (error) {
+      console.error("Attendance insert error:", error);
+      toast.error("Failed to save: " + error.message);
+      return;
+    }
+
     toast.success(t.attendanceSuccess);
     setShakha(""); setPlace(""); setTaruna(""); setBalaka("");
     setShishu(""); setAbhyagata(""); setAnya(""); setPravasa(""); setVishesha("");
@@ -120,8 +140,9 @@ const AttendancePage = () => {
             </div>
           </div>
 
-          <button type="submit" className="w-full py-3 rounded-lg saffron-gradient text-primary-foreground font-semibold text-base btn-elevation">
-            {t.submitBtn}
+          <button type="submit" disabled={loading}
+            className="w-full py-3 rounded-lg saffron-gradient text-primary-foreground font-semibold text-base btn-elevation disabled:opacity-50">
+            {loading ? "Submitting..." : t.submitBtn}
           </button>
         </form>
 
