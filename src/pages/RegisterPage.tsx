@@ -5,6 +5,7 @@ import { useLang } from "@/lib/lang";
 import PageLayout from "@/components/PageLayout";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { Eye, EyeOff } from "lucide-react";
 
 const RegisterPage = () => {
   const [name, setName] = useState("");
@@ -17,6 +18,7 @@ const RegisterPage = () => {
   const [shakhas, setShakhas] = useState<{ id: string; name: string }[]>([]);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { t } = useLang();
@@ -58,17 +60,22 @@ const RegisterPage = () => {
       shakha_id: shakhaId || null,
     });
 
-    setLoading(false);
-
     if (error) {
       console.error("Member insert error:", error);
       toast.error("Registration failed: " + error.message);
+      setLoading(false);
       return;
     }
 
-    toast.success(t.regSuccess);
+    // Create a login request (pending admin approval)
+    await supabase.from("login_requests").insert({ username });
+
+    setLoading(false);
+    toast.success(t.regSuccess + " Admin will approve your login request.");
     navigate("/");
   };
+
+  const inputClass = "w-full px-4 py-3 rounded-lg border border-input bg-warm-white text-foreground placeholder:text-muted-foreground input-focus-ring outline-none";
 
   return (
     <PageLayout>
@@ -86,14 +93,26 @@ const RegisterPage = () => {
             <div>
               <label className="block text-sm font-semibold text-foreground mb-1.5">{t.username}</label>
               <input type="text" value={username} onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-input bg-warm-white text-foreground placeholder:text-muted-foreground input-focus-ring outline-none"
-                placeholder={t.chooseUsername} />
+                className={inputClass} placeholder={t.chooseUsername} />
             </div>
             <div>
               <label className="block text-sm font-semibold text-foreground mb-1.5">{t.password}</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-input bg-warm-white text-foreground placeholder:text-muted-foreground input-focus-ring outline-none"
-                placeholder={t.choosePassword} />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={`${inputClass} pr-12`}
+                  placeholder={t.choosePassword}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -101,14 +120,12 @@ const RegisterPage = () => {
             <div>
               <label className="block text-sm font-semibold text-foreground mb-1.5">Name / नाम *</label>
               <input type="text" value={name} onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-input bg-warm-white text-foreground placeholder:text-muted-foreground input-focus-ring outline-none"
-                placeholder="Enter full name" />
+                className={inputClass} placeholder="Enter full name" />
             </div>
             <div>
               <label className="block text-sm font-semibold text-foreground mb-1.5">Age / आयु</label>
               <input type="number" min={1} value={age} onChange={(e) => setAge(e.target.value === "" ? "" : Number(e.target.value))}
-                className="w-full px-4 py-3 rounded-lg border border-input bg-warm-white text-foreground placeholder:text-muted-foreground input-focus-ring outline-none"
-                placeholder="Age" />
+                className={inputClass} placeholder="Age" />
             </div>
           </div>
 
@@ -116,29 +133,26 @@ const RegisterPage = () => {
             <div>
               <label className="block text-sm font-semibold text-foreground mb-1.5">Phone / दूरभाष</label>
               <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-input bg-warm-white text-foreground placeholder:text-muted-foreground input-focus-ring outline-none"
-                placeholder="Phone number" />
+                className={inputClass} placeholder="Phone number" />
             </div>
             <div>
               <label className="block text-sm font-semibold text-foreground mb-1.5">Role / भूमिका</label>
               <input type="text" value={role} onChange={(e) => setRole(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-input bg-warm-white text-foreground placeholder:text-muted-foreground input-focus-ring outline-none"
-                placeholder="e.g. Swayamsevak" />
+                className={inputClass} placeholder="e.g. Swayamsevak" />
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-semibold text-foreground mb-1.5">Address / पता</label>
             <input type="text" value={address} onChange={(e) => setAddress(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-input bg-warm-white text-foreground placeholder:text-muted-foreground input-focus-ring outline-none"
-              placeholder="Full address" />
+              className={inputClass} placeholder="Full address" />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-foreground mb-1.5">Shikshana / शिक्षण</label>
               <select value={shikshana} onChange={(e) => setShikshana(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-input bg-warm-white text-foreground input-focus-ring outline-none">
+                className={inputClass}>
                 <option value="">Select</option>
                 <option value="None">None</option>
                 <option value="OTC">OTC</option>
@@ -150,7 +164,7 @@ const RegisterPage = () => {
             <div>
               <label className="block text-sm font-semibold text-foreground mb-1.5">Shakha / शाखा</label>
               <select value={shakhaId} onChange={(e) => setShakhaId(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-input bg-warm-white text-foreground input-focus-ring outline-none">
+                className={inputClass}>
                 <option value="">Select Shakha</option>
                 {shakhas.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
