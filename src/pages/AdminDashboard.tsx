@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { adminSignOut, isAdmin } from "@/lib/supabase-auth";
 import { toast } from "sonner";
-import { Users, Calendar, MapPin, LogOut, Plus, Trash2, Edit, Shield } from "lucide-react";
+import { Users, Calendar, MapPin, LogOut, Plus, Trash2, Edit, Shield, CheckCircle, XCircle, Clock } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -48,12 +48,20 @@ interface Shakha {
   created_at: string;
 }
 
+interface LoginRequest {
+  id: string;
+  username: string;
+  status: string;
+  created_at: string;
+}
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [members, setMembers] = useState<Member[]>([]);
   const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [shakhas, setShakhas] = useState<Shakha[]>([]);
+  const [loginRequests, setLoginRequests] = useState<LoginRequest[]>([]);
 
   // Shakha form
   const [shakhaName, setShakhaName] = useState("");
@@ -84,19 +92,29 @@ const AdminDashboard = () => {
   }, [navigate]);
 
   const fetchAll = async () => {
-    const [membersRes, attendanceRes, shakhasRes] = await Promise.all([
+    const [membersRes, attendanceRes, shakhasRes, requestsRes] = await Promise.all([
       supabase.from("members").select("*").order("created_at", { ascending: false }),
       supabase.from("attendance").select("*").order("date", { ascending: false }),
       supabase.from("shakhas").select("*").order("name"),
+      supabase.from("login_requests").select("*").order("created_at", { ascending: false }),
     ]);
     if (membersRes.data) setMembers(membersRes.data);
     if (attendanceRes.data) setAttendance(attendanceRes.data);
     if (shakhasRes.data) setShakhas(shakhasRes.data);
+    if (requestsRes.data) setLoginRequests(requestsRes.data);
   };
 
   const handleLogout = async () => {
     await adminSignOut();
     navigate("/admin");
+  };
+
+  // Login request approval
+  const updateLoginRequest = async (id: string, status: string) => {
+    const { error } = await supabase.from("login_requests").update({ status }).eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Request ${status}`);
+    fetchAll();
   };
 
   // Shakha CRUD
@@ -160,6 +178,8 @@ const AdminDashboard = () => {
     fetchAll();
   };
 
+  const pendingCount = loginRequests.filter(r => r.status === "pending").length;
+
   const inputClass = "w-full px-3 py-2.5 rounded-lg border border-input bg-warm-white text-foreground input-focus-ring outline-none text-sm";
 
   if (loading) return (
@@ -185,14 +205,14 @@ const AdminDashboard = () => {
 
       {/* Stats */}
       <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           <div className="glass-card p-5 flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl saffron-gradient flex items-center justify-center">
               <Users className="w-6 h-6 text-primary-foreground" />
             </div>
             <div>
               <p className="text-2xl font-bold text-foreground">{members.length}</p>
-              <p className="text-xs text-muted-foreground">Total Members</p>
+              <p className="text-xs text-muted-foreground">Members</p>
             </div>
           </div>
           <div className="glass-card p-5 flex items-center gap-4">
@@ -201,7 +221,7 @@ const AdminDashboard = () => {
             </div>
             <div>
               <p className="text-2xl font-bold text-foreground">{attendance.length}</p>
-              <p className="text-xs text-muted-foreground">Attendance Records</p>
+              <p className="text-xs text-muted-foreground">Attendance</p>
             </div>
           </div>
           <div className="glass-card p-5 flex items-center gap-4">
@@ -213,15 +233,88 @@ const AdminDashboard = () => {
               <p className="text-xs text-muted-foreground">Shakhas</p>
             </div>
           </div>
+          <div className="glass-card p-5 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-amber-500 flex items-center justify-center">
+              <Clock className="w-6 h-6 text-primary-foreground" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{pendingCount}</p>
+              <p className="text-xs text-muted-foreground">Pending</p>
+            </div>
+          </div>
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="members" className="w-full">
+        <Tabs defaultValue="requests" className="w-full">
           <TabsList className="w-full mb-4">
+            <TabsTrigger value="requests" className="flex-1">
+              Requests {pendingCount > 0 && <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-destructive text-destructive-foreground">{pendingCount}</span>}
+            </TabsTrigger>
             <TabsTrigger value="members" className="flex-1">Members</TabsTrigger>
             <TabsTrigger value="attendance" className="flex-1">Attendance</TabsTrigger>
             <TabsTrigger value="shakhas" className="flex-1">Shakhas</TabsTrigger>
           </TabsList>
+
+          {/* Login Requests Tab */}
+          <TabsContent value="requests">
+            <div className="glass-card overflow-hidden">
+              <div className="p-4 border-b border-border">
+                <h2 className="font-bold font-display text-foreground">Login Requests ({loginRequests.length})</h2>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-secondary/50">
+                    <tr>
+                      <th className="text-left p-3 font-semibold text-foreground">Username</th>
+                      <th className="text-left p-3 font-semibold text-foreground">Date</th>
+                      <th className="text-center p-3 font-semibold text-foreground">Status</th>
+                      <th className="text-right p-3 font-semibold text-foreground">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loginRequests.map((r) => (
+                      <tr key={r.id} className="border-t border-border hover:bg-secondary/20 transition-colors">
+                        <td className="p-3 text-foreground font-medium">{r.username}</td>
+                        <td className="p-3 text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</td>
+                        <td className="p-3 text-center">
+                          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
+                            r.status === "approved" ? "bg-green-100 text-green-700" :
+                            r.status === "rejected" ? "bg-red-100 text-red-700" :
+                            "bg-amber-100 text-amber-700"
+                          }`}>
+                            {r.status === "approved" && <CheckCircle className="w-3 h-3" />}
+                            {r.status === "rejected" && <XCircle className="w-3 h-3" />}
+                            {r.status === "pending" && <Clock className="w-3 h-3" />}
+                            {r.status.charAt(0).toUpperCase() + r.status.slice(1)}
+                          </span>
+                        </td>
+                        <td className="p-3 text-right space-x-2">
+                          {r.status === "pending" && (
+                            <>
+                              <button onClick={() => updateLoginRequest(r.id, "approved")} className="text-green-600 hover:text-green-800 font-semibold text-xs">
+                                Approve
+                              </button>
+                              <button onClick={() => updateLoginRequest(r.id, "rejected")} className="text-red-600 hover:text-red-800 font-semibold text-xs">
+                                Reject
+                              </button>
+                            </>
+                          )}
+                          {r.status !== "pending" && (
+                            <button onClick={() => updateLoginRequest(r.id, "pending")} className="text-muted-foreground hover:text-foreground text-xs">
+                              Reset
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                    {loginRequests.length === 0 && (
+                      <tr><td colSpan={4} className="p-8 text-center text-muted-foreground">No login requests yet</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </TabsContent>
 
           {/* Members Tab */}
           <TabsContent value="members">

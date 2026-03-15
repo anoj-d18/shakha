@@ -5,10 +5,14 @@ import { useLang } from "@/lib/lang";
 import PageLayout from "@/components/PageLayout";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Eye, EyeOff } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const LoginPage = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { t } = useLang();
 
@@ -20,33 +24,70 @@ const LoginPage = () => {
   const [newRole, setNewRole] = useState("");
   const [newShikshana, setNewShikshana] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !password) {
       toast.error(t.fillAll);
       return;
     }
+
+    setLoading(true);
+
+    // Check if this user has a login request and its status
+    const { data: request } = await supabase
+      .from("login_requests")
+      .select("status")
+      .eq("username", username)
+      .maybeSingle();
+
+    if (!request) {
+      // First time login - create a pending request
+      await supabase.from("login_requests").insert({ username });
+      toast.info("Your login request has been sent to admin for approval. Please wait.");
+      setLoading(false);
+      return;
+    }
+
+    if (request.status === "pending") {
+      toast.warning("Your login request is still pending admin approval.");
+      setLoading(false);
+      return;
+    }
+
+    if (request.status === "rejected") {
+      toast.error("Your login request has been rejected by admin.");
+      setLoading(false);
+      return;
+    }
+
+    // Status is approved - proceed with login
     if (loginUser(username, password)) {
       toast.success(t.loginSuccess);
       navigate("/attendance");
     } else {
       toast.error(t.invalidLogin);
     }
+    setLoading(false);
   };
 
-  const handleNewSubmit = (e: React.FormEvent) => {
+  const handleNewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName || !newAge || !newNumber || !newAddress || !newRole || !newShikshana) {
       toast.error(t.fillAll);
       return;
     }
-    const members = JSON.parse(localStorage.getItem("shakha_members") || "[]");
-    members.push({
-      name: newName, age: newAge, number: newNumber,
-      address: newAddress, role: newRole, shikshana: newShikshana,
-      timestamp: new Date().toISOString(),
+    const { error } = await supabase.from("members").insert({
+      name: newName,
+      age: Number(newAge),
+      phone: newNumber,
+      address: newAddress,
+      role: newRole,
+      shikshana: newShikshana,
     });
-    localStorage.setItem("shakha_members", JSON.stringify(members));
+    if (error) {
+      toast.error("Registration failed: " + error.message);
+      return;
+    }
     toast.success(t.newMemberSuccess);
     setNewName(""); setNewAge(""); setNewNumber("");
     setNewAddress(""); setNewRole(""); setNewShikshana("");
@@ -87,11 +128,25 @@ const LoginPage = () => {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1.5">{t.password}</label>
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-                  className={inputClass} placeholder={t.enterPassword} />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className={`${inputClass} pr-12`}
+                    placeholder={t.enterPassword}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
-              <button type="submit" className="w-full py-3 rounded-lg saffron-gradient text-primary-foreground font-semibold text-base btn-elevation">
-                {t.loginBtn}
+              <button type="submit" disabled={loading} className="w-full py-3 rounded-lg saffron-gradient text-primary-foreground font-semibold text-base btn-elevation disabled:opacity-50">
+                {loading ? "Checking..." : t.loginBtn}
               </button>
               <p className="text-center text-sm text-muted-foreground">
                 {t.noAccount}{" "}

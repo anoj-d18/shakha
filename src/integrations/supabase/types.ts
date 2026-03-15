@@ -76,6 +76,27 @@ export type Database = {
           },
         ]
       }
+      login_requests: {
+        Row: {
+          created_at: string
+          id: string
+          status: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          status?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          status?: string
+          username?: string
+        }
+        Relationships: []
+      }
       members: {
         Row: {
           address: string | null
