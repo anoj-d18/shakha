@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { adminSignOut, isAdmin } from "@/lib/supabase-auth";
 import { toast } from "sonner";
-import { Users, Calendar, MapPin, LogOut, Plus, Trash2, Edit, Shield, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Users, Calendar, MapPin, LogOut, Plus, Trash2, Edit, Shield, CheckCircle, XCircle, Clock, Download } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Dialog,
