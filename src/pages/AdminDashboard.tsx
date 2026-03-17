@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { adminSignOut, isAdmin } from "@/lib/supabase-auth";
 import { toast } from "sonner";
-import { Users, Calendar, MapPin, LogOut, Plus, Trash2, Edit, Shield, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Users, Calendar, MapPin, LogOut, Plus, Trash2, Edit, Shield, CheckCircle, XCircle, Clock, Download } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -180,6 +180,30 @@ const AdminDashboard = () => {
 
   const pendingCount = loginRequests.filter(r => r.status === "pending").length;
 
+  const exportCSV = (filename: string, headers: string[], rows: string[][]) => {
+    const csv = [headers.join(","), ...rows.map(r => r.map(c => `"${(c ?? "").replace(/"/g, '""')}"`).join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`${filename} downloaded`);
+  };
+
+  const exportMembers = () => {
+    exportCSV("members.csv",
+      ["Name", "Age", "Phone", "Address", "Role", "Shikshana", "Registered"],
+      members.map(m => [m.name, String(m.age ?? ""), m.phone ?? "", m.address ?? "", m.role ?? "", m.shikshana ?? "", new Date(m.created_at).toLocaleDateString()])
+    );
+  };
+
+  const exportAttendance = () => {
+    exportCSV("attendance.csv",
+      ["Date", "Shakha", "Place", "Taruna", "Balaka", "Shishu", "Abhyagata", "Anya", "Pravasa", "Total", "Vishesha", "Submitted By"],
+      attendance.map(a => [a.date, a.shakha_name, a.place, String(a.taruna), String(a.balaka), String(a.shishu), String(a.abhyagata), String(a.anya), String(a.pravasa), String(a.total), a.vishesha ?? "", a.submitted_by ?? ""])
+    );
+  };
+
   const inputClass = "w-full px-3 py-2.5 rounded-lg border border-input bg-warm-white text-foreground input-focus-ring outline-none text-sm";
 
   if (loading) return (
@@ -319,8 +343,11 @@ const AdminDashboard = () => {
           {/* Members Tab */}
           <TabsContent value="members">
             <div className="glass-card overflow-hidden">
-              <div className="p-4 border-b border-border">
+              <div className="p-4 border-b border-border flex items-center justify-between">
                 <h2 className="font-bold font-display text-foreground">Members ({members.length})</h2>
+                <button onClick={exportMembers} className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors">
+                  <Download className="w-4 h-4" /> Export CSV
+                </button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -364,8 +391,11 @@ const AdminDashboard = () => {
           {/* Attendance Tab */}
           <TabsContent value="attendance">
             <div className="glass-card overflow-hidden">
-              <div className="p-4 border-b border-border">
+              <div className="p-4 border-b border-border flex items-center justify-between">
                 <h2 className="font-bold font-display text-foreground">Attendance Records ({attendance.length})</h2>
+                <button onClick={exportAttendance} className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors">
+                  <Download className="w-4 h-4" /> Export CSV
+                </button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
