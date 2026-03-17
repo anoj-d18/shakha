@@ -180,6 +180,30 @@ const AdminDashboard = () => {
 
   const pendingCount = loginRequests.filter(r => r.status === "pending").length;
 
+  const exportCSV = (filename: string, headers: string[], rows: string[][]) => {
+    const csv = [headers.join(","), ...rows.map(r => r.map(c => `"${(c ?? "").replace(/"/g, '""')}"`).join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`${filename} downloaded`);
+  };
+
+  const exportMembers = () => {
+    exportCSV("members.csv",
+      ["Name", "Age", "Phone", "Address", "Role", "Shikshana", "Registered"],
+      members.map(m => [m.name, String(m.age ?? ""), m.phone ?? "", m.address ?? "", m.role ?? "", m.shikshana ?? "", new Date(m.created_at).toLocaleDateString()])
+    );
+  };
+
+  const exportAttendance = () => {
+    exportCSV("attendance.csv",
+      ["Date", "Shakha", "Place", "Taruna", "Balaka", "Shishu", "Abhyagata", "Anya", "Pravasa", "Total", "Vishesha", "Submitted By"],
+      attendance.map(a => [a.date, a.shakha_name, a.place, String(a.taruna), String(a.balaka), String(a.shishu), String(a.abhyagata), String(a.anya), String(a.pravasa), String(a.total), a.vishesha ?? "", a.submitted_by ?? ""])
+    );
+  };
+
   const inputClass = "w-full px-3 py-2.5 rounded-lg border border-input bg-warm-white text-foreground input-focus-ring outline-none text-sm";
 
   if (loading) return (
