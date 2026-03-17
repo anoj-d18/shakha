@@ -343,8 +343,11 @@ const AdminDashboard = () => {
           {/* Members Tab */}
           <TabsContent value="members">
             <div className="glass-card overflow-hidden">
-              <div className="p-4 border-b border-border">
+              <div className="p-4 border-b border-border flex items-center justify-between">
                 <h2 className="font-bold font-display text-foreground">Members ({members.length})</h2>
+                <button onClick={exportMembers} className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors">
+                  <Download className="w-4 h-4" /> Export CSV
+                </button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
