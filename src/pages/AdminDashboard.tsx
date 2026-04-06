@@ -62,6 +62,7 @@ const AdminDashboard = () => {
   const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [shakhas, setShakhas] = useState<Shakha[]>([]);
   const [loginRequests, setLoginRequests] = useState<LoginRequest[]>([]);
+  const [activeTab, setActiveTab] = useState("requests");
 
   // Shakha form
   const [shakhaName, setShakhaName] = useState("");
