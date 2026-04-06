@@ -1,19 +1,43 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { adminSignIn, adminSignUp } from "@/lib/supabase-auth";
+import { supabase } from "@/integrations/supabase/client";
 import PageLayout from "@/components/PageLayout";
 import { toast } from "sonner";
-import { Shield } from "lucide-react";
+import { Shield, Eye, EyeOff } from "lucide-react";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const inputClass =
     "w-full px-4 py-3 rounded-lg border border-input bg-warm-white text-foreground placeholder:text-muted-foreground input-focus-ring outline-none";
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !email.includes("@")) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/admin/reset-password`,
+      });
+      if (error) throw error;
+      toast.success("Password reset link sent to your email!");
+      setIsForgotPassword(false);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send reset email");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,53 +81,110 @@ const AdminLogin = () => {
             Admin Panel
           </h1>
           <p className="text-muted-foreground mt-2 text-sm">
-            {isSignUp ? "Create admin account" : "Sign in to manage"}
+            {isForgotPassword
+              ? "Reset your password"
+              : isSignUp
+              ? "Create admin account"
+              : "Sign in to manage"}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-sm font-semibold text-foreground mb-1.5">
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={inputClass}
-              placeholder="admin@example.com"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-foreground mb-1.5">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={inputClass}
-              placeholder="Enter password"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-lg saffron-gradient text-primary-foreground font-semibold text-base btn-elevation disabled:opacity-50"
-          >
-            {loading ? "Please wait..." : isSignUp ? "Create Admin Account" : "Login"}
-          </button>
-          <p className="text-center text-sm text-muted-foreground">
-            {isSignUp ? "Already have an account?" : "First time?"}{" "}
+        {isForgotPassword ? (
+          <form onSubmit={handleForgotPassword} className="space-y-5">
+            <div>
+              <label className="block text-sm font-semibold text-foreground mb-1.5">
+                Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={inputClass}
+                placeholder="admin@example.com"
+              />
+            </div>
             <button
-              type="button"
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="text-primary font-semibold hover:underline"
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 rounded-lg saffron-gradient text-primary-foreground font-semibold text-base btn-elevation disabled:opacity-50"
             >
-              {isSignUp ? "Login here" : "Create admin account"}
+              {loading ? "Sending..." : "Send Reset Link"}
             </button>
-          </p>
-        </form>
+            <p className="text-center text-sm text-muted-foreground">
+              <button
+                type="button"
+                onClick={() => setIsForgotPassword(false)}
+                className="text-primary font-semibold hover:underline"
+              >
+                ← Back to login
+              </button>
+            </p>
+          </form>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-sm font-semibold text-foreground mb-1.5">
+                Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={inputClass}
+                placeholder="admin@example.com"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-foreground mb-1.5">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={`${inputClass} pr-12`}
+                  placeholder="Enter password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+            {!isSignUp && (
+              <div className="text-right -mt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsForgotPassword(true)}
+                  className="text-sm text-primary font-medium hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 rounded-lg saffron-gradient text-primary-foreground font-semibold text-base btn-elevation disabled:opacity-50"
+            >
+              {loading ? "Please wait..." : isSignUp ? "Create Admin Account" : "Login"}
+            </button>
+            <p className="text-center text-sm text-muted-foreground">
+              {isSignUp ? "Already have an account?" : "First time?"}{" "}
+              <button
+                type="button"
+                onClick={() => setIsSignUp(!isSignUp)}
+                className="text-primary font-semibold hover:underline"
+              >
+                {isSignUp ? "Login here" : "Create admin account"}
+              </button>
+            </p>
+          </form>
+        )}
 
         <div className="mt-4 text-center">
           <a href="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">
