@@ -8,6 +8,7 @@ import RegisterPage from "./pages/RegisterPage";
 import AttendancePage from "./pages/AttendancePage";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
