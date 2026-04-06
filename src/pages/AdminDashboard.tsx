@@ -270,7 +270,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="requests" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full mb-4">
             <TabsTrigger value="requests" className="flex-1">
               Requests {pendingCount > 0 && <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-destructive text-destructive-foreground">{pendingCount}</span>}
