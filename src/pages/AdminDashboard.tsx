@@ -62,6 +62,7 @@ const AdminDashboard = () => {
   const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [shakhas, setShakhas] = useState<Shakha[]>([]);
   const [loginRequests, setLoginRequests] = useState<LoginRequest[]>([]);
+  const [activeTab, setActiveTab] = useState("requests");
 
   // Shakha form
   const [shakhaName, setShakhaName] = useState("");
@@ -230,7 +231,7 @@ const AdminDashboard = () => {
       {/* Stats */}
       <div className="max-w-6xl mx-auto px-4 py-6">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-          <div className="glass-card p-5 flex items-center gap-4">
+          <button onClick={() => setActiveTab("members")} className="glass-card p-5 flex items-center gap-4 cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all text-left">
             <div className="w-12 h-12 rounded-xl saffron-gradient flex items-center justify-center">
               <Users className="w-6 h-6 text-primary-foreground" />
             </div>
@@ -238,8 +239,8 @@ const AdminDashboard = () => {
               <p className="text-2xl font-bold text-foreground">{members.length}</p>
               <p className="text-xs text-muted-foreground">Members</p>
             </div>
-          </div>
-          <div className="glass-card p-5 flex items-center gap-4">
+          </button>
+          <button onClick={() => setActiveTab("attendance")} className="glass-card p-5 flex items-center gap-4 cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all text-left">
             <div className="w-12 h-12 rounded-xl saffron-gradient flex items-center justify-center">
               <Calendar className="w-6 h-6 text-primary-foreground" />
             </div>
@@ -247,8 +248,8 @@ const AdminDashboard = () => {
               <p className="text-2xl font-bold text-foreground">{attendance.length}</p>
               <p className="text-xs text-muted-foreground">Attendance</p>
             </div>
-          </div>
-          <div className="glass-card p-5 flex items-center gap-4">
+          </button>
+          <button onClick={() => setActiveTab("shakhas")} className="glass-card p-5 flex items-center gap-4 cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all text-left">
             <div className="w-12 h-12 rounded-xl saffron-gradient flex items-center justify-center">
               <MapPin className="w-6 h-6 text-primary-foreground" />
             </div>
@@ -256,8 +257,8 @@ const AdminDashboard = () => {
               <p className="text-2xl font-bold text-foreground">{shakhas.length}</p>
               <p className="text-xs text-muted-foreground">Shakhas</p>
             </div>
-          </div>
-          <div className="glass-card p-5 flex items-center gap-4">
+          </button>
+          <button onClick={() => setActiveTab("requests")} className="glass-card p-5 flex items-center gap-4 cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all text-left">
             <div className="w-12 h-12 rounded-xl bg-amber-500 flex items-center justify-center">
               <Clock className="w-6 h-6 text-primary-foreground" />
             </div>
@@ -265,11 +266,11 @@ const AdminDashboard = () => {
               <p className="text-2xl font-bold text-foreground">{pendingCount}</p>
               <p className="text-xs text-muted-foreground">Pending</p>
             </div>
-          </div>
+          </button>
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="requests" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full mb-4">
             <TabsTrigger value="requests" className="flex-1">
               Requests {pendingCount > 0 && <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-destructive text-destructive-foreground">{pendingCount}</span>}
